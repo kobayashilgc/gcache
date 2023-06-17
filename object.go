@@ -3,42 +3,43 @@ package gcache
 import "time"
 
 type Object struct {
-	obj    interface{}
-	expire time.Time
+	obj      interface{}
+	expire   time.Time
+	strategy Strategy
 }
 
 type IObject interface {
-	GetObject() interface{}
-	GetObjectPtr() *interface{}
-	CheckExpired() bool
-	GetLeft() (time.Duration, bool)
-	GetExpire() time.Time
+	getObject() interface{}
+	getObjectPtr() *interface{}
+	checkHasExpired() bool
+	getLeft() time.Duration
+	getExpire() time.Time
 }
 
-func (o *Object) GetObject() interface{} {
+func (o *Object) getObject() interface{} {
 	return o.obj
 }
 
-func (o *Object) GetObjectPtr() *interface{} {
+func (o *Object) getObjectPtr() *interface{} {
 	return &o.obj
 }
 
-func (o *Object) CheckHasExpired() bool {
-	if o.expire == neverExpired {
+func (o *Object) checkHasExpired() bool {
+	if o.strategy.Mode == Never {
 		return false
 	}
 	now := time.Now()
 	return !now.After(o.expire)
 }
 
-func (o *Object) GetLeft() (time.Duration, bool) {
-	if o.CheckHasExpired() {
-		return 0, false
+func (o *Object) getLeft() time.Duration {
+	if o.checkHasExpired() {
+		return 0
 	}
 	now := time.Now()
-	return o.expire.Sub(now), true
+	return o.expire.Sub(now)
 }
 
-func (o *Object) GetExpire() time.Time {
+func (o *Object) getExpire() time.Time {
 	return o.expire
 }
